@@ -1,0 +1,73 @@
+import time
+import datetime
+import os
+#import config as config
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+URL_NAME = "https://www.emfcamp.org/tickets"
+TEST_URL_NAME = ""
+
+OPEN_TIME = {'month':4,'day':2,'hour':18, 'minute':0, 'second':0, 'microsecond':0}
+
+print('Start Configuration')
+
+options = webdriver.ChromeOptions()
+driver = webdriver.Chrome(options=options)
+
+now_datetime = datetime.datetime.now()
+open_datetime = now_datetime.replace(month=OPEN_TIME['month'], hour=OPEN_TIME['hour'], minute=OPEN_TIME['minute'], second=OPEN_TIME['second'], microsecond=OPEN_TIME['microsecond'])
+
+print('Finish Configuration')
+
+def wait_until_open():
+   while True:
+      now_datetime = datetime.datetime.now()
+      if open_datetime - now_datetime < datetime.timedelta(minutes=10):
+         if open_datetime - now_datetime < datetime.timedelta(minutes=3):
+            if open_datetime - now_datetime < datetime.timedelta(minutes=1):
+               if open_datetime - now_datetime < datetime.timedelta(seconds=10):
+                     print('Open Time Reached!')
+                     break
+            else:
+               print('Open Time is approaching, waiting for 40 seconds...')
+               time.sleep(40)
+         else:
+            print('Open Time is approaching, waiting for 2 minutes...')
+            time.sleep(100)
+      else:
+         print('Waiting for Open Time...')
+         time.sleep(580)
+
+
+def execute_booking():
+   driver.get(URL_NAME)
+   print('Navigate to Page')
+   Adult_ticket_element = driver.find_element(By.ID, 'tiers-0-tier_id')
+   Select(Adult_ticket_element).select_by_value("2")
+   submit_element = driver.find_element(By.ID, 'buy_tickets')
+   submit_element.click()
+   return True
+
+while True:
+   print('Test booking function...')
+   try:
+      execute_booking()
+      print('Happy accident')
+   except:
+      print('Waiting for Open Time...')
+
+   wait_until_open()
+   try:
+      success = execute_booking()
+      if success:
+         print('Booking Success!')
+         break
+   except:
+      print('Booking Failed, retrying...')
+   now_datetime = datetime.datetime.now()
+
+   if now_datetime - open_datetime > datetime.timedelta(minutes=10):
+      print('Booking Failed, timeout!')
+      break
